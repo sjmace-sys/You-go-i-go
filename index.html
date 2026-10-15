@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#171b3f">
+  <meta name="description" content="A gloriously dramatic, completely fair wheel to decide who's getting the drinks: Helen or Simon.">
+  <title>You Go, I Go! — The Drinks Decider</title>
+
+  <style>
+    :root { color-scheme: dark; --night: #121534; --gold: #ffd04f; --cream: #fff8dc; --pink:#ff4b8a; --cyan:#49dded; }
+    * { box-sizing: border-box; }
+    html { min-height:100%; background:var(--night); }
+    body { margin:0; min-height:100dvh; padding: 0 12px 25px; color:var(--cream); font-family: 'Trebuchet MS', Verdana, sans-serif; overflow-x:hidden; background: radial-gradient(circle at 50% 39%,#343c83 0%,#1b1c53 43%,#121534 78%); }
+    button { font:inherit; touch-action:manipulation; }
+    .background-sparkles { position:fixed; inset:0; pointer-events:none; overflow:hidden; opacity:.6; }
+    .background-sparkles::before { content:''; position:absolute; inset:0; background-image: radial-gradient(#fce6a9 1.2px,transparent 1.2px), radial-gradient(#8fcbff 1.1px,transparent 1.1px); background-size:65px 78px,94px 103px; background-position: 12px 19px, 43px 55px; opacity:.45; }
+    .curtain { position:fixed; top:0; width:13vw; max-width:105px; height:100vh; opacity:.28; pointer-events:none; background:repeating-linear-gradient(90deg,#a52a68 0 14px,#f04c91 14px 22px,#8b1f64 22px 35px); filter:blur(8px); }
+    .curtain.left { left:-6vw; } .curtain.right { right:-6vw; }
+    .app { position:relative; z-index:1; width:min(100%,560px); margin:0 auto; text-align:center; }
+    .awning { position:relative; height:23px; width:min(100%,465px); margin:0 auto 15px; border-radius:0 0 16px 16px; box-shadow:0 6px 0 #a32c57; background:repeating-linear-gradient(90deg,#fff2d2 0 34px,#ff4c80 34px 68px); }
+    .awning::after { content:''; display:block; height:12px; width:100%; border-radius:0 0 40% 40%; position:absolute; bottom:-7px; background:repeating-linear-gradient(90deg,#fff2d2 0 34px,#ff4c80 34px 68px); }
+    header { padding:5px 8px 0; }
+    .eyebrow { display:flex; justify-content:center; gap:9px; align-items:center; color:#ffe397; font-weight:900; font-size:11px; letter-spacing:.23em; }
+    .eyebrow::before,.eyebrow::after { content:'✦'; color:#ff6d9f; font-size:18px; }
+    h1 { margin:5px 0 1px; line-height:.99; color:var(--gold); text-transform:uppercase; font-family:'Arial Black',Impact,'Trebuchet MS',sans-serif; font-size:clamp(38px,9vw,64px); font-weight:1000; letter-spacing:-.055em; text-shadow: 0 4px 0 #d44757, 0 8px 0 #7c245f, 0 11px 13px #080b29; }
+    h1 span { color:#fffbe7; }
+    .sub { margin:10px 0 0; font-size:clamp(13px,3.3vw,16px); font-weight:700; color:#e9e8ff; }
+    .showcase { position:relative; margin-top:19px; padding:1px 0 0; }
+    .ribbon { display:inline-block; position:relative; z-index:2; margin-bottom:9px; padding:7px 23px; transform:rotate(-2deg); background:#fa4e84; color:#fffbee; border:2px solid #ffcf68; box-shadow:3px 5px 0 #84274f; font-size:12px; font-weight:1000; letter-spacing:.12em; border-radius:5px; }
+    .wheel-frame { width:min(82vw,405px); height:min(82vw,405px); margin: 6px auto 0; position:relative; border-radius:50%; padding:17px; border:6px solid #fce18b; background:repeating-conic-gradient(from -6deg,#ec9b1f 0deg 13deg,#ffdb67 13deg 26deg); box-shadow:0 0 0 6px #a73470, 0 0 0 10px #ffe39b, 0 14px 0 #792557,0 20px 24px #070b26bd,0 0 50px #ffcc5940; isolation:isolate; }
+    .wheel-frame::before { content:''; position:absolute; inset:11px; border:3px solid #fff5b9; border-radius:50%; z-index:2; pointer-events:none; box-shadow:0 0 13px #fff8cdbb; }
+    .wheel-disc { position:absolute; inset:17px; width:calc(100% - 34px); height:calc(100% - 34px); display:block; border-radius:50%; will-change:transform; filter:drop-shadow(0 2px 4px #080a2e9f); }
+    .bulb { position:absolute; z-index:4; width:10px; height:10px; border-radius:50%; background:#fff5bc; box-shadow:0 0 7px #ffe39a, 0 0 15px #fff0a8; transform:translate(-50%,-50%); animation:bulb-flicker .8s infinite alternate; }
+    .bulb:nth-of-type(even) { animation-delay:-.5s; background:#ff89c0; box-shadow:0 0 10px #ff91be; }
+    @keyframes bulb-flicker { from {opacity:.6; filter:brightness(.8)} to {opacity:1;filter:brightness(1.4)} }
+    .pointer { z-index:7; position:absolute; left:50%; top:-31px; transform:translateX(-50%); width:53px; height:61px; filter:drop-shadow(0px 4px 1px #742550) drop-shadow(0px 0px 4px #fff3ac); }
+    .pointer::before { content:''; display:block; position:absolute; inset:0; background:#fff3bd; clip-path:polygon(3% 0%,97% 0%,50% 100%); }
+    .pointer::after { content:''; display:block; position:absolute; inset:6px 7px 15px; background:#ef477d; clip-path:polygon(0 0,100% 0,50% 100%); }
+    .pointer.ticking { animation:pointer-tick .11s ease-out; }
+    @keyframes pointer-tick { 0% {transform:translateX(-50%) rotate(0)} 45% {transform:translateX(-50%) rotate(-12deg)} 100% {transform:translateX(-50%) rotate(0)} }
+    .hub { pointer-events:none; position:absolute; z-index:5; top:50%;left:50%; transform:translate(-50%,-50%); width:66px;height:66px; border-radius:50%; border:6px solid #fff2bb; background:radial-gradient(circle at 35% 25%,#ff9bba,#ee3c7b 58%,#b42862); box-shadow:0 4px 0 #91244e,0 0 0 3px #b62c70; display:flex; align-items:center; justify-content:center; font-size:35px; color:#ffde7f; text-shadow:0 2px #ad3a69; }
+    .result { margin:25px auto 11px; padding:11px 10px 13px; min-height:91px; width:min(92%,430px); border:3px solid #ffcc5c; border-radius:16px; background:linear-gradient(125deg,#26275b,#343473); box-shadow: 0 5px 0 #bb3875, inset 0 0 0 2px #55589a,0 9px 20px #0006; transition:background .2s; }
+    .result-kicker { display:block; font-size:11px; font-weight:1000; letter-spacing:.2em; color:#ffe79e; text-transform:uppercase; }
+    .result-main { display:block; margin:3px 0 0; font-family:'Arial Black',Impact,'Trebuchet MS',sans-serif; text-transform:uppercase; font-size:clamp(24px,5.8vw,34px); line-height:1.2; font-weight:1000; color:#fffdf2; text-shadow:2px 3px 0 #ad3774; }
+    .result-caption { display:block; margin-top:4px; font-size:12px; color:#efefff; }
+    .result.won { border-color:#fff4ab; background:linear-gradient(120deg,#8a2a9d,#df427d,#f2903b); animation:winner-glow 1s infinite alternate; }
+    .result.won .result-main { font-size:clamp(39px,9vw,53px); color:#fffbb9; text-shadow:3px 4px 0 #832b84; }
+    @keyframes winner-glow { from{box-shadow:0 5px 0 #b83675,0 0 10px #f3ba56} to{box-shadow:0 5px 0 #b83675,0 0 30px #ffdc7b} }
+    .spin-btn { width:min(94%,430px); min-height:76px; position:relative; overflow:hidden; border:4px solid #ffedac; border-radius:20px; background:linear-gradient(#ffcf39 0%,#ff9229 45%,#f6485c 100%); box-shadow:0 9px 0 #9f235b,0 12px 0 #ffcee3,0 17px 18px #03072570; font-family:'Arial Black',Impact,'Trebuchet MS',sans-serif; font-weight:1000; font-size:clamp(22px,5.7vw,30px); text-transform:uppercase; color:#fffdf0; letter-spacing:-.025em; text-shadow:0 3px 0 #ac2c59; cursor:pointer; transition:transform .13s,box-shadow .13s; }
+    .spin-btn:not(:disabled):active { transform:translateY(6px); box-shadow:0 3px 0 #9f235b,0 6px 0 #ffcee3; }
+    .spin-btn:disabled { cursor:wait; opacity:.76; }
+    .spin-btn:focus-visible,.sound-btn:focus-visible { outline:3px solid #fff; outline-offset:4px; }
+    .spin-btn::before { content:''; position:absolute; inset:-25px auto -25px -50%; width:32%; background:#fff7; transform:rotate(25deg); animation:glint 3.5s infinite; pointer-events:none; }
+    @keyframes glint { 0%,74%{left:-55%} 100%{left:135%} }
+    .lower { display:flex; gap:8px; align-items:center; justify-content:center; margin:22px 0 0; }
+    .sound-btn { background:#293062;border:2px solid #7676bd; border-radius:999px; padding:8px 14px; font-weight:800; font-size:12px; color:#faf5e6; cursor:pointer; }
+    .tiny { color:#bfc1e6; font-size:11px; font-weight:700; }
+    footer { padding: 17px 0 5px; color:#b5b8e2; font-size:11px; }
+    .confetti-layer { position:fixed; inset:0; z-index:20; pointer-events:none; overflow:hidden; }
+    .confetti { position:absolute; top:-10vh; width:9px; height:16px; border-radius:2px; opacity:1; animation:confetti-fall var(--dur,3s) var(--delay,0s) linear forwards; }
+    @keyframes confetti-fall {0%{transform:translate3d(0,-40px,0) rotate(0deg);opacity:1}90%{opacity:1}100%{transform:translate3d(var(--drift,35px),110vh,0) rotate(var(--turn,980deg));opacity:0} }
+    .firework { position:fixed; z-index:21; left:var(--x); top:var(--y); pointer-events:none; width:8px; height:8px; border-radius:50%; background:var(--clr); animation:firework var(--speed,.9s) ease-out forwards; box-shadow:0 0 9px var(--clr); }
+    @keyframes firework {0%{transform:translate(0,0) scale(1);opacity:1}90%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0} }
+    .flash { pointer-events:none; position:fixed; z-index:15; inset:0; background:#fff4a7; opacity:0; }
+    .flash.go { animation:flash-win .38s 2 ease-out; }
+    @keyframes flash-win { 0%{opacity:0} 25%{opacity:.22} 100%{opacity:0} }
+    .shake { animation:shake .4s ease-out; }
+    @keyframes shake { 0%,100%{translate:0 0}25%{translate:-3px 0}50%{translate:3px 0}75%{translate:-2px 0} }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media(min-width:600px) { .awning{margin-bottom:16px} .wheel-frame{margin-top:7px} .showcase{margin-top:21px} }
+    @media(max-width:360px){ .wheel-frame{width:80vw;height:80vw;padding:12px}.wheel-disc{inset:15px;width:calc(100% - 30px);height:calc(100% - 30px)}.hub{width:52px;height:52px;font-size:29px}.result{margin-top:20px}.spin-btn{min-height:68px} }
+    @media(prefers-reduced-motion:reduce){ .bulb,.spin-btn::before{animation:none}.result.won{animation:none}.flash.go{animation:none} }
+    /* SINGLE-SCREEN RESPONSIVE LAYOUT v2 */
+    /* Use the *visible* browser viewport rather than document height. */
+    html { height:100%; }
+    body {
+      height:100vh; height:100dvh; min-height:0;
+      padding:env(safe-area-inset-top) 10px max(5px,env(safe-area-inset-bottom));
+      overflow:hidden;
+    }
+    .app {
+      height:100%; min-height:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:space-between;
+    }
+    .awning { flex:none; height:clamp(9px,2vh,18px); margin:0 auto 2px; }
+    .awning::after { height:7px;bottom:-4px; }
+    header { flex:none; width:100%; padding:3px 2px 0; }
+    .eyebrow { font-size:clamp(8px,2.45vw,10px); letter-spacing:.17em; line-height:1.15; gap:5px; }
+    .eyebrow::before,.eyebrow::after { font-size:13px; }
+    h1 { margin:2px 0 0; font-size:clamp(31px,8.8vw,52px); line-height:1.04; }
+    .sub { margin:4px 0 0; font-size:clamp(11px,2.7vw,14px); line-height:1.2; }
+    .showcase {
+      width:100%; flex:1 1 0; min-height:0; margin:4px 0 0; padding:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+    .ribbon {
+      flex:none; margin:0 0 16px; padding:5px 16px;
+      font-size:clamp(9px,2.7vw,11px); line-height:1.1;
+    }
+    .wheel-frame {
+      flex:none;
+      --size:min(82vw,390px,max(150px,calc(100dvh - 365px)));
+      width:var(--size);height:var(--size);margin:0 auto;
+    }
+    .pointer { width:clamp(32px,9vw,48px);height:clamp(38px,10.5vw,55px);top:-25px; }
+    .hub { width:clamp(44px,12vw,64px);height:clamp(44px,12vw,64px);font-size:clamp(23px,7vw,33px); }
+    .result {
+      display:flex;flex:none;flex-direction:column;justify-content:center;align-items:center;
+      width:min(96%,430px);height:clamp(73px,12dvh,99px);min-height:0;
+      margin:4px auto 8px;padding:4px 6px 5px;border-width:2px;border-radius:13px;
+    }
+    .result-kicker {font-size:clamp(8px,2.25vw,10px);letter-spacing:.11em;line-height:1.1;}
+    .result-main {font-size:clamp(17px,5.2vw,29px);line-height:1.08;margin:3px 0 0;}
+    .result-caption {font-size:clamp(10px,2.55vw,12px);line-height:1.14;margin-top:3px;}
+    .result.won .result-main {font-size:clamp(27px,8.7vw,46px);line-height:1.02;}
+    .spin-btn {
+      flex:none;width:min(96%,430px);height:clamp(52px,8.5dvh,70px);min-height:0;
+      border-width:3px;border-radius:16px;font-size:clamp(20px,5.5vw,28px);
+      box-shadow:0 6px 0 #9f235b,0 9px 0 #ffcee3,0 13px 14px #03072570;
+    }
+    .lower { flex:none;margin:10px 0 0;gap:7px; }
+    .sound-btn {padding:6px 11px;font-size:11px;}
+    .tiny {font-size:10px;}
+    footer {flex:none;padding:5px 0 0;font-size:10px;line-height:1.2;}
+    @media (max-height:650px) {
+      .app {justify-content:space-between;}
+      .awning {height:8px;}
+      header {padding-top:0;}
+      .showcase {margin-top:0;}
+      .ribbon {margin-bottom:13px;padding:4px 13px;}
+      .wheel-frame {--size:min(78vw,330px,max(138px,calc(100dvh - 347px)));padding:12px;border-width:5px;}
+      .wheel-disc {inset:12px;width:calc(100% - 24px);height:calc(100% - 24px);}
+      .wheel-frame::before {inset:9px;}
+      .bulb {width:7px;height:7px;}
+      .result {margin:3px auto 7px;height:72px;}
+      .spin-btn {height:52px;}
+      .lower {margin-top:6px;}
+      footer {padding:1px 0 0;}
+    }
+    @media (max-height:515px) {
+      .sub,footer,.tiny,.awning {display:none;}
+      .eyebrow {font-size:8px;}
+      h1 {font-size:clamp(25px,5vw,36px);}
+      .showcase {margin-top:0;}
+      .ribbon {margin-bottom:9px;padding:3px 12px;}
+      .wheel-frame {--size:min(43vh,58vw,230px);}
+      .result {height:63px;margin:3px auto 6px;}
+      .result-main {font-size:clamp(16px,3.7vw,22px);}
+      .result.won .result-main {font-size:clamp(23px,5vw,36px);}
+      .spin-btn {height:44px;font-size:20px;}
+      .sound-btn {padding:4px 12px;}
+      .lower {margin-top:5px;}
+    }
+    /* If the phone is extremely narrow, keep the text legible without clipping. */
+    @media(max-width:340px) {
+      .sub {font-size:10.5px;}
+      h1 {font-size:30px;}
+      .ribbon {font-size:9px;}
+      .result-caption {font-size:9px;}
+    }
+    /* END SINGLE-SCREEN RESPONSIVE LAYOUT */
+  </style>
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml"></head>
+<body>
+  <div class="background-sparkles" aria-hidden="true"></div>
+  <div class="curtain left" aria-hidden="true"></div><div class="curtain right" aria-hidden="true"></div>
+  <main class="app" id="app">
+    <div class="awning" aria-hidden="true"></div>
+    <header>
+      <div class="eyebrow">THE OFFICIAL DRINKS DECIDER</div>
+      <h1><span>YOU GO,</span> I GO!</h1>
+      <p class="sub">One wheel. Two contenders. Absolutely no arguments.</p>
+    </header>
+    <section class="showcase" aria-label="The drinks duty spinning wheel">
+      <div class="ribbon">HELEN <span aria-hidden="true">✦</span> VS <span aria-hidden="true">✦</span> SIMON</div>
+      <div class="wheel-frame" id="wheelFrame">
+        <div class="pointer" id="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" class="wheel-disc" width="720" height="720" aria-label="Eight equal slices alternating Helen and Simon"></canvas>
+        <div class="hub" aria-hidden="true">★</div>
+      </div>
+    </section>
+    <section class="result" id="result" aria-live="polite" aria-atomic="true">
+      <span class="result-kicker" id="resultKicker">WELCOME TO THE BIG SHOW</span>
+      <strong class="result-main" id="resultMain">WHO'S GETTING THE DRINKS?</strong>
+      <span class="result-caption" id="resultCaption">Press the button and let fate decide.</span>
+    </section>
+    <button class="spin-btn" id="spinButton" type="button">🎡 SPIN THE WHEEL!</button>
+    <div class="lower">
+      <button class="sound-btn" id="soundButton" type="button" aria-pressed="true">🔊 Sound on</button>
+      <span class="tiny">50 / 50. No funny business.</span>
+    </div>
+    <footer>✦ The only way to settle a drinks dispute ✦</footer>
+  </main>
+  <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+  <div class="flash" id="flash" aria-hidden="true"></div>
+  <script>
+  (() => {
+    'use strict';
+    const wheel = document.getElementById('wheel');
+    const ctx = wheel.getContext('2d');
+    const spinButton = document.getElementById('spinButton');
+    const soundButton = document.getElementById('soundButton');
+    const pointer = document.getElementById('pointer');
+    const frame = document.getElementById('wheelFrame');
+    const app = document.getElementById('app');
+    const result = document.getElementById('result');
+    const kicker = document.getElementById('resultKicker');
+    const main = document.getElementById('resultMain');
+    const caption = document.getElementById('resultCaption');
+    const confettiLayer = document.getElementById('confettiLayer');
+    const flash = document.getElementById('flash');
+    const names = Array.from({length:8}, (_,i) => i % 2 ? 'SIMON' : 'HELEN');
+    const colours = ['#fb4e85','#458eea','#faac32','#7b53d6','#18bda6','#fc6580','#4b80e4','#ed8754'];
+    let spinning = false;
+    let rotation = 0;
+    let soundOn = true;
+    let audioContext = null;
+    let lastTick = -1000;
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function randomInt(max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const v = new Uint32Array(1);
+        const upper = Math.floor(0x100000000 / max) * max;
+        do { window.crypto.getRandomValues(v); } while (v[0] >= upper);
+        return v[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    }
+
+    function drawWheel() {
+      const c = ctx;
+      if (!c) return;
+      const size = 720, mid = size / 2, radius = 350;
+      c.clearRect(0,0,size,size);
+      for (let i=0; i<8; i++) {
+        const step = 2 * Math.PI / 8;
+        const centre = -Math.PI / 2 + i * step;
+        const start = centre - step/2;
+        const end = centre + step/2;
+        const grd = c.createRadialGradient(mid,mid,54,mid,mid,360);
+        grd.addColorStop(0,'#fff3cb'); grd.addColorStop(.12,colours[i]); grd.addColorStop(1,colours[i]);
+        c.beginPath(); c.moveTo(mid,mid); c.arc(mid,mid,radius,start,end); c.closePath();
+        c.fillStyle = grd; c.fill();
+        c.strokeStyle = '#fff4c3'; c.lineWidth = 6; c.stroke();
+        // A star sits near the outer edge of every segment.
+        c.save(); c.translate(mid + Math.cos(centre)*307,mid + Math.sin(centre)*307);
+        c.fillStyle = '#fff7db'; c.font='bold 28px Trebuchet MS'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('✦',0,0); c.restore();
+        // Keep lettering right-way up even on the bottom half.
+        let textAngle = centre + Math.PI/2;
+        if (Math.cos(textAngle) < -0.01) textAngle += Math.PI;
+        c.save();
+        c.translate(mid + Math.cos(centre)*205,mid + Math.sin(centre)*205);
+        c.rotate(textAngle);
+        c.textAlign='center'; c.textBaseline='middle';
+        c.font='1000 43px Arial Black, Trebuchet MS, sans-serif';
+        c.lineWidth=8; c.lineJoin='round'; c.strokeStyle='#42245eaa'; c.strokeText(names[i],0,0);
+        c.fillStyle='#fffceb'; c.fillText(names[i],0,0);
+        c.restore();
+      }
+      c.beginPath(); c.arc(mid,mid,radius-4,0,2*Math.PI); c.strokeStyle='#fff2bd'; c.lineWidth=13; c.stroke();
+      c.beginPath(); c.arc(mid,mid,72,0,2*Math.PI); c.strokeStyle='#ffe6a4'; c.lineWidth=9; c.stroke();
+    }
+
+    for (let i=0; i<24; i++) {
+      const bulb=document.createElement('span');
+      bulb.className='bulb';
+      bulb.style.left=(50+47.2*Math.sin(2*Math.PI*i/24))+'%';
+      bulb.style.top=(50-47.2*Math.cos(2*Math.PI*i/24))+'%';
+      bulb.style.animationDelay=(-i*.09)+'s';
+      frame.appendChild(bulb);
+    }
+    drawWheel();
+
+    function initSound() {
+      if (!soundOn) return;
+      try {
+        const AudioCtx=window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!audioContext) audioContext=new AudioCtx();
+        if (audioContext.state === 'suspended') audioContext.resume().catch(()=>{});
+      } catch(e) { /* Silent operation is fine. */ }
+    }
+    function tone(freq, when=0, dur=.09, vol=.05, type='triangle') {
+      if (!soundOn || !audioContext || audioContext.state==='closed') return;
+      try {
+        const at=audioContext.currentTime + when;
+        const osc=audioContext.createOscillator();
+        const gain=audioContext.createGain();
+        osc.type=type;
+        osc.frequency.setValueAtTime(freq,at);
+        gain.gain.setValueAtTime(.0001,at);
+        gain.gain.exponentialRampToValueAtTime(Math.max(.0002,vol),at+.01);
+        gain.gain.exponentialRampToValueAtTime(.0001,at+dur);
+        osc.connect(gain);gain.connect(audioContext.destination);
+        osc.start(at);osc.stop(at+dur+.03);
+      } catch(e) { /* Nothing should ever block a spin. */ }
+    }
+    function spinJingle(){
+      [523.25,659.25,784,1046.5].forEach((n,i) => tone(n,i*.1,.22,.075,'triangle'));
+    }
+    function victoryJingle(){
+      [392,523.25,659.25,783.99,1046.5].forEach((n,i) => tone(n,i*.14,.28,.09,'triangle'));
+      [523.25,659.25,783.99].forEach((n,i) => tone(n,.71+i*.075,.43,.042,'sine'));
+      tone(1046.5,1.04,.7,.10,'triangle');
+    }
+    function setResult(top,big,small,won=false){
+      kicker.textContent=top;main.textContent=big;caption.textContent=small;
+      result.classList.toggle('won',won);
+    }
+    function confetti() {
+      confettiLayer.replaceChildren();
+      const shades=['#ffd84c','#f9488a','#69e5eb','#fff0ca','#8d66f6','#ff8f40','#a4fa78'];
+      const amount=reducedMotion ? 30 : 170;
+      for (let i=0;i<amount;i++) {
+        const bit=document.createElement('span');
+        bit.className='confetti';
+        bit.style.left=(Math.random()*100)+'%';
+        bit.style.background=shades[randomInt(shades.length)];
+        bit.style.width=(5+Math.random()*8)+'px';
+        bit.style.height=(7+Math.random()*13)+'px';
+        bit.style.setProperty('--dur',(2.4+Math.random()*2.5)+'s');
+        bit.style.setProperty('--delay',(Math.random()*.8)+'s');
+        bit.style.setProperty('--drift',(-170+Math.random()*340)+'px');
+        bit.style.setProperty('--turn',(-1200+Math.random()*2400)+'deg');
+        confettiLayer.appendChild(bit);
+      }
+      setTimeout(()=>confettiLayer.replaceChildren(),6100);
+    }
+    function launchFirework(x,y){
+      const shades=['#ffce41','#ff4b86','#62e2eb','#f9fff0','#8d63ff'];
+      for(let i=0;i<22;i++){
+        const piece=document.createElement('div');piece.className='firework';
+        const a=2*Math.PI*i/22;
+        const len=45+Math.random()*105;
+        piece.style.setProperty('--x',x+'px');piece.style.setProperty('--y',y+'px');
+        piece.style.setProperty('--dx',Math.cos(a)*len+'px');piece.style.setProperty('--dy',Math.sin(a)*len+'px');
+        piece.style.setProperty('--clr',shades[i%shades.length]);
+        piece.style.setProperty('--speed',(.65+Math.random()*.5)+'s');
+        document.body.appendChild(piece);
+        setTimeout(()=>piece.remove(),1400);
+      }
+    }
+    function celebrate(winner){
+      const jokes = [
+        'The bar has spoken. No appeals!',
+        'Your official bar staff shift begins now.',
+        'A round of applause… and a round of drinks!',
+        'Don’t forget the ice!',
+        'The wheel never lies. Probably.',
+        'That’s one small trip to the kitchen…'
+      ];
+      setResult('🎺 AND THE WINNER IS…',winner+'! 🥂',jokes[randomInt(jokes.length)],true);
+      spinButton.textContent='🎡 SPIN AGAIN?';
+      spinButton.disabled=false;
+      app.classList.remove('shake');void app.offsetWidth;app.classList.add('shake');
+      flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go');
+      confetti();
+      const w=window.innerWidth,h=window.innerHeight;
+      if(!reducedMotion){
+        launchFirework(w*.22,h*.3);
+        setTimeout(()=>launchFirework(w*.77,h*.26),250);
+        setTimeout(()=>launchFirework(w*.4,h*.18),470);
+        setTimeout(()=>launchFirework(w*.64,h*.43),700);
+      }
+      victoryJingle();
+      if (navigator.vibrate) { try {navigator.vibrate([100,60,200]);}catch(e){} }
+    }
+    function spin(){
+      if(spinning) return;
+      spinning=true;
+      spinButton.disabled=true;
+      spinButton.textContent='🎠 HERE WE GOOOO!';
+      setResult('🎟️ THE WHEEL IS SPINNING','ROUND AND ROUND…','There’s no backing out now!');
+      initSound();spinJingle();
+      const winner=randomInt(2)===0?'HELEN':'SIMON';
+      const winnerIndexes=winner==='HELEN'?[0,2,4,6]:[1,3,5,7];
+      const targetIndex=winnerIndexes[randomInt(winnerIndexes.length)];
+      const jitter=(Math.random()-.5)*18; // Remains comfortably within the chosen wedge.
+      const targetMod=((360-targetIndex*45+jitter)%360+360)%360;
+      const oldMod=((rotation%360)+360)%360;
+      const extra=((targetMod-oldMod)%360+360)%360;
+      const turns=7+randomInt(3);
+      const startRot=rotation;
+      const finishRot=startRot+turns*360+extra;
+      const duration=reducedMotion?2100:6100+randomInt(1700);
+      const t0=performance.now();
+      lastTick=-1000;
+      let previousSegment=Math.floor((rotation+22.5)/45);
+      function frameStep(now){
+        let t=Math.min(1,(now-t0)/duration);
+        // A deliberately long, teasing slow-down before landing.
+        const eased=1-Math.pow(1-t,3.4);
+        const angle=startRot+(finishRot-startRot)*eased;
+        wheel.style.transform='rotate('+angle+'deg)';
+        const segment=Math.floor((angle+22.5)/45);
+        if(segment!==previousSegment && now-lastTick>55){
+          pointer.classList.remove('ticking');void pointer.offsetWidth;pointer.classList.add('ticking');
+          tone(650+randomInt(3)*95,0,.045,.032,'triangle');
+          lastTick=now;
+          previousSegment=segment;
+        }
+        if(t>.65 && t<.89 && main.textContent!=='WHO WILL IT BE?'){
+          setResult('🎟️ PLACE YOUR BETS…','WHO WILL IT BE?','Almost there…');
+        }
+        if(t>=1){
+          rotation=finishRot%360; // Keep angles small across many rounds.
+          wheel.style.transform='rotate('+rotation+'deg)';
+          spinning=false;
+          celebrate(winner);
+        } else requestAnimationFrame(frameStep);
+      }
+      requestAnimationFrame(frameStep);
+    }
+    spinButton.addEventListener('click',spin);
+    soundButton.addEventListener('click',()=>{
+      soundOn=!soundOn;
+      soundButton.textContent=soundOn?'🔊 Sound on':'🔇 Sound off';
+      soundButton.setAttribute('aria-pressed',String(soundOn));
+      if(soundOn){initSound();tone(880,0,.13,.07);}
+    });
+  })();
+  </script>
+
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});</script></body>
+</html>
